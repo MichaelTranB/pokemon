@@ -1,0 +1,1 @@
+The Pokémon Battle Simulator is a simple text-based game designed to teach students the fundamentals of classes, objects, and object-oriented programming (OOP) concepts through project-based learning. The game replicates the basic mechanics of Pokémon battles, allowing users to engage in turn-based fights with different Pokémon, each with unique characteristics and moves.
