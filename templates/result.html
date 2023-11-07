@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Battle Result</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .battle-log { margin-top: 20px; }
+        .pokemon { font-weight: bold; }
+        .move { font-style: italic; }
+        .health-bar { height: 20px; background-color: #f00; margin-top: 5px; overflow: hidden; }
+        .health-bar-inner { height: 100%; background-color: #0f0; }
+    </style>
+</head>
+<body>
+    <h1>Battle Result</h1>
+    
+    <div id="battle-result">
+        <div id="player-result">
+            <h2>Your Pokémon: <span class="pokemon" id="player-pokemon-name"></span></h2>
+            <div class="health-bar">
+                <div id="player-health-bar-inner" class="health-bar-inner"></div>
+            </div>
+            <p>HP: <span id="player-hp"></span></p>
+        </div>
+
+        <div id="opponent-result">
+            <h2>Opponent Pokémon: <span class="pokemon" id="opponent-pokemon-name"></span></h2>
+            <div class="health-bar">
+                <div id="opponent-health-bar-inner" class="health-bar-inner"></div>
+            </div>
+            <p>HP: <span id="opponent-hp"></span></p>
+        </div>
+    </div>
+
+    <div id="player-moves-section">
+        <h3>Choose your move:</h3>
+        <select id="player-moves">
+            <!-- Moves will be dynamically populated here -->
+        </select>
+        <button id="perform-move-btn">Perform Move</button>
+    </div>
+
+
+    <div class="battle-log">
+        <h3>Battle Log</h3>
+        <ul id="log-list"></ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Assuming 'player_pokemon_name' is stored in the session and accessible via a Flask context processor or a global JS variable.
+            fetchAndDisplayMoves(playerPokemonName); 
+        });
+
+        document.getElementById('perform-move-btn').addEventListener('click', function() {
+            const selectedMove = document.getElementById('player-moves').value;
+            performMove(selectedMove);
+        });
+
+        function performMove(move) {
+            fetch('/perform_move', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ move: move })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'Turn completed') {
+                    updateBattleState(data);
+                } else {
+                    // Handle battle won or lost
+                    console.log(data.status);
+                }
+            })
+            .catch(error => {
+                console.error('Error performing the move:', error);
+            });
+        }
+
+        function updateBattleState(data) {
+            // Update player and opponent HP and battle log
+            // This function will need to be implemented to reflect changes in the UI
+        }
+
+        function fetchAndDisplayMoves(pokemonName) {
+            fetch(`/get_moves/${pokemonName}`)
+                .then(response => response.json())
+                .then(moves => {
+                    const movesSelect = document.getElementById('player-moves');
+                    movesSelect.innerHTML = ''; // Clear existing options
+                    moves.forEach(move => {
+                        movesSelect.options[movesSelect.options.length] = new Option(move, move);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching moves:', error);
+                });
+        }
+
+    </script>
+
+    <a href="/">Start New Battle</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/get_battle_result')
+                .then(response => response.json())
+                .then(data => {
+                    // Update player info
+                    document.getElementById('player-pokemon-name').textContent = data.player.name;
+                    document.getElementById('player-hp').textContent = data.player.hp;
+                    document.getElementById('player-health-bar-inner').style.width = `${data.player.hp_percentage}%`;
+
+                    // Update opponent info
+                    document.getElementById('opponent-pokemon-name').textContent = data.opponent.name;
+                    document.getElementById('opponent-hp').textContent = data.opponent.hp;
+                    document.getElementById('opponent-health-bar-inner').style.width = `${data.opponent.hp_percentage}%`;
+
+                    // Update battle logs
+                    const logList = document.getElementById('log-list');
+                    data.logs.forEach(log => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = log;
+                        logList.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching battle results:', error);
+                });
+        });
+    </script>
+</body>
+</html>

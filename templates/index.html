@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pokémon Battle Simulator</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { text-align: center; }
+        .battle-setup { margin-top: 20px; }
+        label { display: block; margin-bottom: 5px; }
+        select, button { width: 100%; padding: 10px; margin-bottom: 10px; }
+        button { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Pokémon Battle Simulator</h1>
+
+        <div class="battle-setup">
+            <form id="start-battle-form">
+                <div>
+                    <label for="player-pokemon">Choose Your Pokémon:</label>
+                    <select id="player-pokemon" name="player_pokemon" required>
+                        <!-- Dynamically populated with Pokémon options -->
+                    </select>
+                </div>
+                <div>
+                    <label for="opponent-pokemon">Choose Opponent's Pokémon:</label>
+                    <select id="opponent-pokemon" name="opponent_pokemon" required>
+                        <!-- Dynamically populated with Pokémon options -->
+                    </select>
+                </div>
+                <button type="submit">Start Battle!</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Populate the Pokémon selection dropdowns
+            const pokemons = ['Charizard', 'Blastoise']; // Replace with the full list from your server if needed
+            const playerSelect = document.getElementById('player-pokemon');
+            const opponentSelect = document.getElementById('opponent-pokemon');
+            
+            pokemons.forEach(pokemon => {
+                playerSelect.options[playerSelect.options.length] = new Option(pokemon, pokemon);
+                opponentSelect.options[opponentSelect.options.length] = new Option(pokemon, pokemon);
+            });
+
+            // Handle the form submission
+            document.getElementById('start-battle-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const playerPokemon = document.getElementById('player-pokemon').value;
+                const opponentPokemon = document.getElementById('opponent-pokemon').value;
+                const battleData = { player_pokemon: playerPokemon, opponent_pokemon: opponentPokemon };
+                
+                fetch('/start_battle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(battleData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'Battle started') {
+                        // Redirect to the battle results page
+                        window.location.href = '/result';
+                    } else {
+                        console.error('Failed to start the battle', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error starting the battle:', error);
+                });
+            });
+        });
+    </script>
+
+    
+</body>
+</html>
